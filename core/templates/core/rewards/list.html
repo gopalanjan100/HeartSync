@@ -1,0 +1,138 @@
+{% extends "core/base.html" %}
+{% block title %}Rewards — HeartSync{% endblock %}
+
+{% block content %}
+
+{# ── Header ───────────────────────────────────────────────────────────── #}
+<div class="flex items-center justify-between mb-2">
+  <div>
+    <h1 class="text-2xl font-extrabold text-stone-800">🎁 Rewards</h1>
+    <p class="text-sm text-stone-400 mt-0.5">Spend your points on something you both love.</p>
+  </div>
+  <a href="{% url 'core:reward-create' %}"
+     class="bg-gold-400 hover:bg-amber-500 active:scale-95 text-white font-bold
+            rounded-2xl px-4 py-2.5 text-sm transition-all duration-150 shadow-sm">
+    + New Reward
+  </a>
+</div>
+
+{# ── Points balance pill ──────────────────────────────────────────────── #}
+<div class="inline-flex items-center gap-2 bg-gold-50 border border-amber-200
+            rounded-full px-4 py-1.5 mb-6 text-sm font-bold text-amber-700">
+  ✨ Your balance: {{ profile.points_balance }} pts
+</div>
+
+{# ── Reward cards ─────────────────────────────────────────────────────── #}
+{% if rewards %}
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+  {% for reward in rewards %}
+  <div class="bg-white border rounded-3xl px-5 py-5 shadow-sm transition-all duration-200
+              {% if reward.id in affordable_ids %}
+                border-amber-200 hover:shadow-md hover:border-amber-300
+              {% else %}
+                border-cream-200 opacity-60
+              {% endif %}">
+
+    {# Icon + title #}
+    <div class="flex items-center gap-3 mb-3">
+      <span class="text-4xl leading-none">{{ reward.icon|default:"🎁" }}</span>
+      <div>
+        <h3 class="font-bold text-stone-800 leading-tight">{{ reward.title }}</h3>
+        <p class="text-xs text-stone-400 mt-0.5">{{ reward.description|truncatechars:60 }}</p>
+      </div>
+    </div>
+
+    {# Cost badge #}
+    <div class="flex items-center justify-between">
+      <span class="inline-flex items-center gap-1 text-sm font-extrabold
+                   {% if reward.id in affordable_ids %}text-amber-600{% else %}text-stone-400{% endif %}">
+        ✨ {{ reward.cost }} pts
+      </span>
+
+      {% if reward.id in affordable_ids %}
+      <form method="post" action="{% url 'core:reward-redeem' reward.pk %}">
+        {% csrf_token %}
+        <button type="submit"
+                class="bg-amber-400 hover:bg-amber-500 active:scale-95 text-white font-bold
+                       rounded-2xl px-4 py-1.5 text-sm transition-all duration-150">
+          Redeem 💫
+        </button>
+      </form>
+      {% else %}
+      <span class="text-xs text-stone-400 bg-stone-100 rounded-2xl px-3 py-1.5 font-medium">
+        Need {{ reward.cost }} pts
+      </span>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="text-center py-16">
+  <div class="text-6xl mb-4">🌸</div>
+  <p class="text-stone-500 font-semibold text-lg">No rewards yet.</p>
+  <p class="text-stone-400 text-sm mt-1 mb-6">Add something you'd love — a massage, date night, anything!</p>
+  <a href="{% url 'core:reward-create' %}"
+     class="inline-block bg-amber-400 hover:bg-amber-500 text-white font-bold
+            rounded-2xl px-6 py-3 transition">
+    + Add First Reward
+  </a>
+</div>
+{% endif %}
+
+{# ── Redemption log ───────────────────────────────────────────────────── #}
+{% if recent_redemptions %}
+<div>
+  <h2 class="font-bold text-stone-600 text-xs uppercase tracking-widest mb-3">Redemption History</h2>
+  <div class="space-y-2">
+    {% for r in recent_redemptions %}
+    <div class="bg-white rounded-2xl border px-4 py-3
+                {% if not r.is_fulfilled and r.deadline %}
+                  {% if r.is_overdue %}border-rose-300{% elif r.days_remaining <= 3 %}border-amber-300{% else %}border-cream-200{% endif %}
+                {% else %}border-cream-200{% endif %}">
+      <div class="flex items-center gap-3">
+        <span class="text-xl shrink-0">{{ r.reward.icon|default:"🎁" }}</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold text-stone-700 truncate">{{ r.reward.title }}</p>
+          <p class="text-xs text-stone-400">
+            {{ r.redeemed_by.display_name }} · {{ r.redeemed_at|timesince }} ago
+          </p>
+          {# Deadline countdown #}
+          {% if not r.is_fulfilled and r.deadline %}
+          <p class="text-xs font-semibold mt-0.5
+                     {% if r.is_overdue %}text-rose-500
+                     {% elif r.days_remaining <= 3 %}text-amber-500
+                     {% else %}text-emerald-600{% endif %}">
+            ⏰ Due {{ r.deadline }}
+            {% if r.is_overdue %}
+              — overdue!
+            {% elif r.days_remaining == 0 %}
+              — Due today!
+            {% else %}
+              — {{ r.days_remaining }} day{{ r.days_remaining|pluralize }} left
+            {% endif %}
+          </p>
+          {% endif %}
+        </div>
+        {% if r.is_fulfilled %}
+        <span class="shrink-0 text-xs bg-emerald-100 text-emerald-600 font-semibold rounded-full px-2.5 py-0.5">
+          ✓ Done
+        </span>
+        {% else %}
+        <form method="post" action="{% url 'core:redemption-fulfill' r.pk %}">
+          {% csrf_token %}
+          <button class="shrink-0 text-xs bg-amber-100 hover:bg-amber-200 text-amber-600
+                         font-semibold rounded-full px-2.5 py-0.5 transition">
+            Mark done
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

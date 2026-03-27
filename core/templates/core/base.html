@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}HeartSync{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            rose:   { DEFAULT: '#f43f5e', 50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 300: '#fda4af', 400: '#fb7185', 500: '#f43f5e', 600: '#e11d48', 700: '#be123c' },
+            gold:   { DEFAULT: '#f59e0b', 50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d', 400: '#fbbf24', 500: '#f59e0b' },
+            cream:  { 50: '#fdfaf5', 100: '#faf5eb', 200: '#f5ead6' },
+          },
+          fontFamily: { sans: ['"Inter"', 'ui-sans-serif', 'system-ui'] },
+          borderRadius: { xl: '1rem', '2xl': '1.5rem', '3xl': '2rem' },
+        },
+      },
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body { background-color: #fdfaf5; }
+    /* Smooth power-bar fill animation */
+    .power-bar-fill { transition: width 1s cubic-bezier(.4,0,.2,1); }
+    /* Sticker pop animation */
+    @keyframes pop { 0%,100%{transform:scale(1)} 50%{transform:scale(1.25)} }
+    .sticker-pop { animation: pop .35s ease-in-out; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="min-h-full font-sans text-stone-800">
+
+  <!-- ── Top Nav ─────────────────────────────────────────────────────────── -->
+  <nav class="bg-white/80 backdrop-blur border-b border-rose-100 sticky top-0 z-30">
+    <div class="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between">
+      <a href="{% url 'core:dashboard' %}" class="flex items-center gap-2 font-extrabold text-rose-500 text-lg tracking-tight">
+        <span class="text-2xl">💗</span> HeartSync
+      </a>
+      {% if request.user.is_authenticated %}
+      <div class="flex items-center gap-4 text-sm">
+        <a href="{% url 'core:quest-list' %}"
+           class="text-stone-500 hover:text-rose-500 font-medium transition">Quests</a>
+        <a href="{% url 'core:reward-list' %}"
+           class="text-stone-500 hover:text-rose-500 font-medium transition">Rewards</a>
+        <a href="{% url 'core:date-list' %}"
+           class="text-stone-500 hover:text-rose-500 font-medium transition">Dates</a>
+        <span class="text-stone-300">|</span>
+        <span class="font-semibold text-gold-500">
+          ✨ {% if request.user.profile %}{{ request.user.profile.points_balance }}{% else %}0{% endif %} pts
+        </span>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="text-stone-400 hover:text-rose-400 transition text-xs">Sign out</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </nav>
+
+  <!-- ── Messages ────────────────────────────────────────────────────────── -->
+  {% if messages %}
+  <div class="max-w-3xl mx-auto px-4 mt-4 space-y-2">
+    {% for msg in messages %}
+    <div class="rounded-2xl px-4 py-3 text-sm font-medium flex items-center gap-2
+      {% if msg.tags == 'success' %}bg-emerald-50 text-emerald-700 border border-emerald-200
+      {% elif msg.tags == 'error' %}bg-rose-50 text-rose-700 border border-rose-200
+      {% else %}bg-gold-50 text-amber-700 border border-amber-200{% endif %}">
+      {% if msg.tags == 'success' %}✅{% elif msg.tags == 'error' %}❌{% else %}ℹ️{% endif %}
+      {{ msg }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ── Main content ────────────────────────────────────────────────────── -->
+  <main class="max-w-3xl mx-auto px-4 py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+</body>
+</html>

@@ -1,0 +1,78 @@
+{% extends "core/base.html" %}
+{% block title %}New Quest — HeartSync{% endblock %}
+
+{% block content %}
+
+<div class="max-w-lg mx-auto">
+  <a href="{% url 'core:quest-list' %}"
+     class="inline-flex items-center gap-1 text-sm text-stone-400 hover:text-rose-500 mb-6 transition">
+    ← Back to Quest Board
+  </a>
+
+  <div class="bg-white rounded-3xl shadow-sm border border-cream-200 px-6 py-7">
+    <h1 class="text-xl font-extrabold text-stone-800 mb-1">✨ New Quest</h1>
+    <p class="text-sm text-stone-400 mb-6">Give it a name, pick a difficulty, and optionally assign it.</p>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% for field in form %}
+      <div class="mb-5">
+        <label for="{{ field.id_for_label }}"
+               class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5">
+          {{ field.label }}
+        </label>
+
+        {# Render the widget with Tailwind classes injected via |add_class workaround #}
+        {% if field.field.widget.input_type == 'checkbox' %}
+        <label class="flex items-center gap-3 cursor-pointer">
+          {{ field }}
+          <span class="text-sm text-stone-600">{{ field.help_text }}</span>
+        </label>
+        {% else %}
+        <div class="[&>*]:w-full [&>input]:rounded-2xl [&>input]:border [&>input]:border-rose-200
+                    [&>input]:px-4 [&>input]:py-2.5 [&>input]:text-sm [&>input]:bg-cream-50
+                    [&>input]:focus:outline-none [&>input]:focus:ring-2 [&>input]:focus:ring-rose-300
+                    [&>select]:rounded-2xl [&>select]:border [&>select]:border-rose-200
+                    [&>select]:px-4 [&>select]:py-2.5 [&>select]:text-sm [&>select]:bg-cream-50
+                    [&>select]:focus:outline-none [&>select]:focus:ring-2 [&>select]:focus:ring-rose-300
+                    [&>textarea]:rounded-2xl [&>textarea]:border [&>textarea]:border-rose-200
+                    [&>textarea]:px-4 [&>textarea]:py-2.5 [&>textarea]:text-sm [&>textarea]:bg-cream-50
+                    [&>textarea]:focus:outline-none [&>textarea]:focus:ring-2 [&>textarea]:focus:ring-rose-300
+                    [&>textarea]:resize-none">
+          {{ field }}
+        </div>
+        {% if field.help_text %}
+        <p class="text-xs text-stone-400 mt-1">{{ field.help_text }}</p>
+        {% endif %}
+        {% endif %}
+
+        {% if field.errors %}
+        <ul class="mt-1.5 space-y-1">
+          {% for error in field.errors %}
+          <li class="text-xs text-rose-600 bg-rose-50 rounded-xl px-3 py-1">{{ error }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      {# Non-field errors #}
+      {% if form.non_field_errors %}
+      <ul class="mb-4 space-y-1">
+        {% for error in form.non_field_errors %}
+        <li class="text-xs text-rose-600 bg-rose-50 rounded-xl px-3 py-1.5">{{ error }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      <button type="submit"
+              class="w-full bg-rose-500 hover:bg-rose-600 active:scale-95
+                     text-white font-bold rounded-2xl py-3 transition-all duration-150 mt-2">
+        Add Quest 🗺
+      </button>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

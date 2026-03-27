@@ -1,0 +1,86 @@
+{% extends "core/base.html" %}
+{% block title %}Add Important Date — HeartSync{% endblock %}
+
+{% block content %}
+
+<div class="max-w-lg mx-auto">
+  <div class="mb-6">
+    <a href="{% url 'core:date-list' %}" class="text-xs text-stone-400 hover:text-rose-500 font-medium transition">
+      ← Back to Dates
+    </a>
+    <h1 class="text-2xl font-extrabold text-stone-800 mt-2">🗓️ Add Important Date</h1>
+    <p class="text-sm text-stone-400 mt-0.5">Save a date worth remembering for both of you.</p>
+  </div>
+
+  <div class="bg-white rounded-3xl border border-stone-100 shadow-sm px-6 py-6">
+    <form method="post">
+      {% csrf_token %}
+
+      {% for field in form %}
+      <div class="mb-5">
+        <label class="block text-sm font-semibold text-stone-700 mb-1.5">
+          {{ field.label }}
+          {% if field.field.required %}<span class="text-rose-400">*</span>{% endif %}
+        </label>
+
+        {% if field.name == "is_recurring" %}
+        <label class="flex items-center gap-3 cursor-pointer">
+          {{ field }}
+          <span class="text-sm text-stone-500">Repeat every year</span>
+        </label>
+
+        {% elif field.name == "category" %}
+        <select name="{{ field.html_name }}" id="{{ field.id_for_label }}"
+                class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-2.5
+                       text-sm text-stone-700 focus:outline-none focus:ring-2 focus:ring-rose-300">
+          {% for val, label in form.fields.category.choices %}
+          <option value="{{ val }}" {% if field.value == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+
+        {% elif field.name == "note" %}
+        <textarea name="{{ field.html_name }}" id="{{ field.id_for_label }}"
+                  rows="3" placeholder="{{ field.field.widget.attrs.placeholder|default:'' }}"
+                  class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-2.5
+                         text-sm placeholder-stone-300 focus:outline-none focus:ring-2
+                         focus:ring-rose-300 resize-none">{{ field.value|default:'' }}</textarea>
+
+        {% else %}
+        <input type="{{ field.field.widget.input_type|default:'text' }}"
+               name="{{ field.html_name }}"
+               id="{{ field.id_for_label }}"
+               value="{{ field.value|default:'' }}"
+               {% if field.field.widget.attrs.placeholder %}placeholder="{{ field.field.widget.attrs.placeholder }}"{% endif %}
+               {% if field.field.widget.attrs.min %}min="{{ field.field.widget.attrs.min }}"{% endif %}
+               {% if field.field.widget.attrs.max %}max="{{ field.field.widget.attrs.max }}"{% endif %}
+               class="w-full rounded-2xl border border-stone-200 bg-white px-4 py-2.5
+                      text-sm placeholder-stone-300 focus:outline-none focus:ring-2 focus:ring-rose-300">
+        {% endif %}
+
+        {% if field.help_text %}
+        <p class="text-xs text-stone-400 mt-1">{{ field.help_text }}</p>
+        {% endif %}
+
+        {% for error in field.errors %}
+        <p class="text-xs text-rose-500 mt-1">{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endfor %}
+
+      <div class="flex gap-3 mt-6">
+        <button type="submit"
+                class="flex-1 bg-rose-500 hover:bg-rose-600 active:scale-95 text-white
+                       font-bold rounded-2xl py-3 transition-all duration-150">
+          Save Date 💗
+        </button>
+        <a href="{% url 'core:date-list' %}"
+           class="flex-1 text-center bg-stone-100 hover:bg-stone-200 text-stone-600
+                  font-semibold rounded-2xl py-3 transition text-sm leading-[1.75rem]">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

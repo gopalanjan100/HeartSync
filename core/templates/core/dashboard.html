@@ -1,0 +1,309 @@
+{% extends "core/base.html" %}
+{% block title %}Home — HeartSync{% endblock %}
+
+{% block content %}
+
+{# ── Upcoming date reminders popup banner ─────────────────────────────── #}
+{% if upcoming_dates %}
+<div id="date-reminder-banner" class="mb-4 bg-rose-50 border border-rose-200 rounded-3xl px-5 py-4">
+  <div class="flex items-start justify-between gap-3">
+    <div class="flex-1">
+      <p class="text-sm font-bold text-rose-600 mb-2">🗓️ Coming Up Soon</p>
+      <div class="space-y-1.5">
+        {% for d in upcoming_dates %}
+        <div class="flex items-center gap-2 text-sm">
+          <span class="text-lg leading-none">{{ d.icon }}</span>
+          <span class="font-semibold text-stone-700">{{ d.title }}</span>
+          <span class="text-stone-400">·</span>
+          {% if d.days_until == 0 %}
+            <span class="text-rose-500 font-bold">Today! 🎉</span>
+          {% elif d.days_until == 1 %}
+            <span class="text-rose-500 font-semibold">Tomorrow</span>
+          {% else %}
+            <span class="text-stone-500">in {{ d.days_until }} days</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <button onclick="document.getElementById('date-reminder-banner').remove()"
+            class="text-stone-300 hover:text-stone-500 text-xl leading-none shrink-0 mt-0.5">×</button>
+  </div>
+</div>
+{% endif %}
+
+{# ── Partner reward redemption alerts ─────────────────────────────────── #}
+{% if partner_redemptions %}
+<div class="mb-4 bg-amber-50 border border-amber-200 rounded-3xl px-5 py-4">
+  <p class="text-sm font-bold text-amber-700 mb-2">🎁 Your partner redeemed a reward — time to deliver!</p>
+  <div class="space-y-2">
+    {% for r in partner_redemptions %}
+    <div class="flex items-center gap-3 bg-white rounded-2xl border border-amber-100 px-4 py-3">
+      <span class="text-xl shrink-0">{{ r.reward.icon|default:"🎁" }}</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold text-stone-800 truncate">{{ r.reward.title }}</p>
+        <p class="text-xs text-stone-400">
+          {{ r.redeemed_by.display_name }} · {{ r.redeemed_at|timesince }} ago
+          {% if r.deadline %} · due {{ r.deadline|date:"M j" }}{% endif %}
+        </p>
+      </div>
+      <form method="post" action="{% url 'core:redemption-fulfill' r.pk %}">
+        {% csrf_token %}
+        <button class="shrink-0 text-xs bg-amber-400 hover:bg-amber-500 text-white
+                       font-bold rounded-full px-3 py-1.5 transition">
+          Mark done ✓
+        </button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{# ── Overdue / urgent reward deadline alerts (own redemptions) ────────── #}
+{% for r in pending_redemptions %}
+  {% if r.is_overdue or r.days_remaining <= 3 %}
+  <div class="mb-3 rounded-2xl px-4 py-3 text-sm font-medium flex items-center gap-2
+              {% if r.is_overdue %}bg-rose-50 text-rose-700 border border-rose-200
+              {% else %}bg-amber-50 text-amber-700 border border-amber-200{% endif %}">
+    {% if r.is_overdue %}⚠️{% else %}⏰{% endif %}
+    <span>
+      Your <strong>{{ r.reward.title }}</strong> redemption
+      {% if r.is_overdue %}is overdue!{% else %}is due in {{ r.days_remaining }} day{{ r.days_remaining|pluralize }}!{% endif %}
+    </span>
+  </div>
+  {% endif %}
+{% endfor %}
+
+{# ── One-time invite code banner ──────────────────────────────────────── #}
+{% if new_invite_code %}
+<div class="mb-6 bg-rose-50 border border-rose-200 rounded-3xl px-6 py-5">
+  <p class="text-sm font-semibold text-rose-600 mb-1">🎉 Your home is ready! Share this code:</p>
+  <p class="font-mono text-3xl font-extrabold tracking-[.25em] text-rose-500 text-center py-2">
+    {{ new_invite_code }}
+  </p>
+  <p class="text-xs text-stone-400 text-center">This message won't appear again — copy it now.</p>
+</div>
+{% endif %}
+
+{# ── Relationship Power Bar ───────────────────────────────────────────── #}
+<section class="bg-white rounded-3xl shadow-sm border border-rose-100 px-6 py-5 mb-6">
+  <div class="flex items-center justify-between mb-2">
+    <h2 class="font-bold text-stone-700 text-sm tracking-wide uppercase">Relationship Power</h2>
+    <span class="text-xs text-stone-400 font-medium">
+      {{ completed_quest_count }} / {{ total_quest_count }} quests done
+    </span>
+  </div>
+  <div class="w-full bg-rose-100 rounded-full h-5 overflow-hidden">
+    <div
+      class="power-bar-fill h-5 rounded-full bg-gradient-to-r from-rose-400 via-pink-400 to-yellow-300"
+      style="width: {{ power_pct }}%;"
+    ></div>
+  </div>
+  <div class="flex justify-between text-[10px] text-stone-400 mt-1 px-0.5">
+    <span>🌱 Starting out</span>
+    <span>🔥 On a roll</span>
+    <span>💫 Unstoppable</span>
+  </div>
+</section>
+
+{# ── Housemates ───────────────────────────────────────────────────────── #}
+<section class="mb-6">
+  <h2 class="font-bold text-stone-600 text-xs uppercase tracking-widest mb-3">Your Home</h2>
+  <div class="flex gap-3 flex-wrap">
+    {% for mate in housemates %}
+    <div class="bg-white border border-stone-100 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm
+                {% if mate == profile %}ring-2 ring-rose-300{% endif %}">
+      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-rose-200 to-yellow-200
+                  flex items-center justify-center font-bold text-rose-600 text-lg shrink-0">
+        {{ mate.display_name|first|upper }}
+      </div>
+      <div>
+        <p class="font-semibold text-sm text-stone-800 leading-tight">
+          {{ mate.display_name }}{% if mate == profile %} <span class="text-rose-400 text-xs">(you)</span>{% endif %}
+        </p>
+        <p class="text-xs text-amber-500 font-medium">✨ {{ mate.points_balance }} pts</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+{# ── Quick Gratitude ──────────────────────────────────────────────────── #}
+<section class="bg-gradient-to-br from-rose-50 to-amber-50 border border-rose-100
+                rounded-3xl px-6 py-5 mb-6">
+  <h2 class="font-bold text-stone-700 mb-1">💌 Quick Gratitude</h2>
+  <p class="text-xs text-stone-400 mb-4">Send your partner a sticker or a little note.</p>
+
+  <form method="post" action="{% url 'core:send-gratitude' %}">
+    {% csrf_token %}
+
+    <div class="flex gap-2 flex-wrap mb-4">
+      {% for sticker in stickers %}
+      <button type="button"
+              data-sticker="{{ sticker }}"
+              onclick="pickSticker(this)"
+              class="sticker-btn text-2xl w-11 h-11 rounded-2xl bg-white border-2 border-transparent
+                     hover:border-rose-300 hover:scale-110 transition-all duration-150 shadow-sm">
+        {{ sticker }}
+      </button>
+      {% endfor %}
+    </div>
+    <input type="hidden" name="sticker" id="selected-sticker" value="" />
+
+    <textarea name="message" rows="2" maxlength="200"
+              placeholder="Add a little note… (optional)"
+              class="w-full rounded-2xl border border-rose-200 bg-white px-4 py-2.5
+                     text-sm placeholder-stone-300 focus:outline-none focus:ring-2
+                     focus:ring-rose-300 resize-none mb-3"></textarea>
+
+    {% if housemates|length > 2 %}
+    <select name="recipient_id"
+            class="w-full rounded-2xl border border-rose-200 bg-white px-4 py-2.5
+                   text-sm text-stone-600 focus:outline-none focus:ring-2 focus:ring-rose-300 mb-3">
+      {% for mate in housemates %}
+        {% if mate != profile %}
+        <option value="{{ mate.id }}">To {{ mate.display_name }}</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+    {% else %}
+      {% for mate in housemates %}{% if mate != profile %}
+      <input type="hidden" name="recipient_id" value="{{ mate.id }}" />
+      {% endif %}{% endfor %}
+    {% endif %}
+
+    <button type="submit"
+            class="w-full bg-rose-500 hover:bg-rose-600 active:scale-95
+                   text-white font-bold rounded-2xl py-2.5 transition-all duration-150">
+      Send Gratitude 💗
+    </button>
+  </form>
+</section>
+
+{# ── Received Gratitude ───────────────────────────────────────────────── #}
+{% if received_gratitude %}
+<section class="mb-6">
+  <h2 class="font-bold text-stone-600 text-xs uppercase tracking-widest mb-3">💌 Love Received</h2>
+  <div class="space-y-2">
+    {% for g in received_gratitude %}
+    <div class="bg-white border border-rose-100 rounded-2xl px-4 py-3 flex items-center gap-3 shadow-sm">
+      {% if g.sticker %}
+      <span class="text-2xl shrink-0">{{ g.sticker }}</span>
+      {% else %}
+      <span class="text-2xl shrink-0">💌</span>
+      {% endif %}
+      <div class="flex-1 min-w-0">
+        <p class="text-xs text-stone-400 font-medium">From {{ g.sender.display_name }} · {{ g.sent_at|timesince }} ago</p>
+        {% if g.message %}
+        <p class="text-sm text-stone-700 mt-0.5 italic">"{{ g.message }}"</p>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# ── Quest snapshot ───────────────────────────────────────────────────── #}
+<section class="mb-6">
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="font-bold text-stone-600 text-xs uppercase tracking-widest">Open Quests</h2>
+    <a href="{% url 'core:quest-list' %}" class="text-xs text-rose-500 hover:underline font-semibold">
+      View all →
+    </a>
+  </div>
+
+  {% if open_quest_count == 0 %}
+  <div class="text-center py-8 text-stone-400 text-sm bg-white rounded-2xl border border-stone-100">
+    🎉 All quests completed! Add more on the Quest Board.
+  </div>
+  {% else %}
+  <div class="bg-white rounded-2xl border border-stone-100 px-5 py-4 flex items-center justify-between">
+    <p class="text-stone-600 text-sm">
+      <span class="font-bold text-rose-500 text-lg">{{ open_quest_count }}</span>
+      open quest{{ open_quest_count|pluralize }} waiting
+    </p>
+    <a href="{% url 'core:quest-list' %}"
+       class="bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-2xl
+              px-4 py-2 text-sm transition">
+      Quest Board →
+    </a>
+  </div>
+  {% endif %}
+</section>
+
+{# ── Important Dates snapshot ─────────────────────────────────────────── #}
+<section class="mb-6">
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="font-bold text-stone-600 text-xs uppercase tracking-widest">Important Dates</h2>
+    <a href="{% url 'core:date-list' %}" class="text-xs text-rose-500 hover:underline font-semibold">
+      View all →
+    </a>
+  </div>
+  {% if all_important_dates %}
+  <div class="space-y-2">
+    {% for d in all_important_dates|slice:":3" %}
+    <div class="bg-white rounded-2xl border border-stone-100 px-4 py-3 flex items-center gap-3 shadow-sm">
+      <span class="text-2xl shrink-0">{{ d.icon }}</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold text-stone-800 truncate">{{ d.title }}</p>
+        <p class="text-xs text-stone-400">{{ d.date|date:"M j" }}{% if d.is_recurring %} · yearly{% endif %}</p>
+      </div>
+      {% if d.days_until == 0 %}
+        <span class="text-xs bg-rose-100 text-rose-600 font-bold rounded-full px-2.5 py-0.5">Today! 🎉</span>
+      {% elif d.days_until <= d.reminder_days %}
+        <span class="text-xs bg-amber-100 text-amber-600 font-semibold rounded-full px-2.5 py-0.5">{{ d.days_until }}d away</span>
+      {% else %}
+        <span class="text-xs text-stone-300 font-medium">{{ d.next_occurrence|date:"M j" }}</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="bg-white rounded-2xl border border-stone-100 px-5 py-4 text-center">
+    <p class="text-stone-400 text-sm">No important dates yet.</p>
+    <a href="{% url 'core:date-create' %}"
+       class="inline-block mt-2 text-xs text-rose-500 hover:underline font-semibold">+ Add one</a>
+  </div>
+  {% endif %}
+</section>
+
+{# ── Recent Redemptions ───────────────────────────────────────────────── #}
+{% if recent_redemptions %}
+<section>
+  <h2 class="font-bold text-stone-600 text-xs uppercase tracking-widest mb-3">Recent Rewards</h2>
+  <div class="space-y-2">
+    {% for r in recent_redemptions %}
+    <div class="bg-white rounded-2xl border border-stone-100 px-4 py-3 flex items-center gap-3 shadow-sm">
+      <span class="text-2xl">{{ r.reward.icon|default:"🎁" }}</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold text-stone-800 truncate">{{ r.reward.title }}</p>
+        <p class="text-xs text-stone-400">
+          {{ r.redeemed_by.display_name }} · {{ r.redeemed_at|timesince }} ago
+        </p>
+      </div>
+      {% if r.is_fulfilled %}
+        <span class="text-xs bg-emerald-100 text-emerald-600 font-semibold rounded-full px-2 py-0.5">Done ✓</span>
+      {% else %}
+        <span class="text-xs bg-amber-100 text-amber-600 font-semibold rounded-full px-2 py-0.5">Pending</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_head %}
+<script>
+  function pickSticker(btn) {
+    document.querySelectorAll('.sticker-btn').forEach(b => {
+      b.classList.remove('border-rose-400', 'bg-rose-50', 'sticker-pop');
+    });
+    btn.classList.add('border-rose-400', 'bg-rose-50', 'sticker-pop');
+    document.getElementById('selected-sticker').value = btn.dataset.sticker;
+  }
+</script>
+{% endblock %}

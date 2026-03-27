@@ -1,0 +1,140 @@
+{% extends "core/base.html" %}
+{% block title %}Create Your Home — HeartSync{% endblock %}
+
+{% block content %}
+<div class="max-w-lg mx-auto">
+
+  {# ── Step indicator ───────────────────────────────────────────────── #}
+  <div class="flex items-center justify-center gap-2 mb-8 text-xs font-semibold">
+    <span class="w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center text-[10px]">1</span>
+    <span class="text-rose-500">Create Home</span>
+    <span class="w-12 h-px bg-stone-200"></span>
+    <span class="w-6 h-6 rounded-full bg-stone-200 text-stone-400 flex items-center justify-center text-[10px]">2</span>
+    <span class="text-stone-400">Invite Partner</span>
+    <span class="w-12 h-px bg-stone-200"></span>
+    <span class="w-6 h-6 rounded-full bg-stone-200 text-stone-400 flex items-center justify-center text-[10px]">3</span>
+    <span class="text-stone-400">Dashboard</span>
+  </div>
+
+  {# ── Hero ─────────────────────────────────────────────────────────── #}
+  <div class="text-center mb-7">
+    <div class="inline-flex items-center justify-center w-20 h-20 rounded-3xl
+                bg-gradient-to-br from-rose-100 to-amber-100 text-5xl mb-3 shadow-sm">🏠</div>
+    <h1 class="text-2xl font-extrabold text-stone-800">Create Your Home</h1>
+    <p class="text-stone-400 text-sm mt-1">Your private space for two (or five).</p>
+  </div>
+
+  <div class="bg-white rounded-3xl shadow-sm border border-rose-100 px-7 py-7 space-y-5">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {# House Name #}
+      <div>
+        <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">
+          🏡 House Name
+        </label>
+        <input type="text" name="house_name"
+               value="{{ form.house_name.value|default:'' }}"
+               placeholder="e.g. Our Little Nest"
+               autocomplete="off"
+               class="w-full rounded-2xl border px-4 py-3 text-sm bg-amber-50/30
+                      focus:outline-none focus:ring-2 focus:ring-amber-300 transition
+                      {% if form.house_name.errors %}border-rose-400{% else %}border-amber-200{% endif %}">
+        {% for e in form.house_name.errors %}
+          <p class="text-xs text-rose-500 bg-rose-50 rounded-xl px-3 py-1 mt-1">{{ e }}</p>
+        {% endfor %}
+      </div>
+
+      {# Member Limit — card radio buttons #}
+      <div>
+        <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">
+          👥 Who lives here?
+        </label>
+        <div class="grid grid-cols-2 gap-3">
+          {% for radio in form.member_limit %}
+          <label class="relative flex flex-col items-center gap-2 cursor-pointer
+                        border-2 rounded-2xl py-5 px-3 text-center transition-all duration-150
+                        hover:border-rose-300 hover:bg-rose-50/50
+                        has-[:checked]:border-rose-500 has-[:checked]:bg-rose-50">
+            <input type="radio" name="{{ form.member_limit.html_name }}"
+                   value="{{ radio.data.value }}" class="sr-only"
+                   {% if radio.data.selected %}checked{% endif %}>
+            <span class="text-3xl">{% if radio.data.value == "2" %}💑{% else %}👨‍👩‍👧‍👦{% endif %}</span>
+            <div>
+              <p class="text-sm font-bold text-stone-700">{{ radio.choice_label }}</p>
+              <p class="text-[10px] text-stone-400">{% if radio.data.value == "2" %}Max 2 members{% else %}Max 5 members{% endif %}</p>
+            </div>
+          </label>
+          {% endfor %}
+        </div>
+        <p class="text-xs text-stone-400 mt-1.5">{{ form.member_limit.help_text }}</p>
+        {% for e in form.member_limit.errors %}
+          <p class="text-xs text-rose-500 bg-rose-50 rounded-xl px-3 py-1 mt-1">{{ e }}</p>
+        {% endfor %}
+      </div>
+
+      {# Display Name #}
+      <div>
+        <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">
+          😊 Your Display Name
+        </label>
+        <input type="text" name="display_name"
+               value="{{ form.display_name.value|default:'' }}"
+               placeholder="e.g. Alex"
+               autocomplete="off"
+               class="w-full rounded-2xl border px-4 py-3 text-sm bg-amber-50/30
+                      focus:outline-none focus:ring-2 focus:ring-amber-300 transition
+                      {% if form.display_name.errors %}border-rose-400{% else %}border-amber-200{% endif %}">
+        {% for e in form.display_name.errors %}
+          <p class="text-xs text-rose-500 bg-rose-50 rounded-xl px-3 py-1 mt-1">{{ e }}</p>
+        {% endfor %}
+      </div>
+
+      {# Divider #}
+      <div class="flex items-center gap-3 py-1">
+        <div class="flex-1 h-px bg-stone-100"></div>
+        <span class="text-xs text-stone-400 font-medium">optional — invite someone right now</span>
+        <div class="flex-1 h-px bg-stone-100"></div>
+      </div>
+
+      {# Invite email #}
+      <div>
+        <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">
+          💌 Send Invite Email
+        </label>
+        <div class="flex gap-2">
+          <input type="email" name="invite_email"
+                 value="{{ form.invite_email.value|default:'' }}"
+                 placeholder="partner@example.com"
+                 autocomplete="off"
+                 class="flex-1 rounded-2xl border border-rose-200 px-4 py-3 text-sm bg-rose-50/20
+                        focus:outline-none focus:ring-2 focus:ring-rose-300 transition">
+          <span class="flex items-center text-stone-400 text-xs font-medium px-1">→ sends code</span>
+        </div>
+        <p class="text-xs text-stone-400 mt-1.5">Leave blank to share the code manually later.</p>
+        {% for e in form.invite_email.errors %}
+          <p class="text-xs text-rose-500 bg-rose-50 rounded-xl px-3 py-1 mt-1">{{ e }}</p>
+        {% endfor %}
+      </div>
+
+      {% for e in form.non_field_errors %}
+        <p class="text-xs text-rose-600 bg-rose-50 rounded-xl px-3 py-2">{{ e }}</p>
+      {% endfor %}
+
+      <button type="submit"
+              class="w-full bg-rose-500 hover:bg-rose-600 active:scale-[.98] text-white
+                     font-bold rounded-2xl py-3.5 text-base transition-all duration-150 shadow-sm mt-2">
+        Create My Home 🏠
+      </button>
+    </form>
+  </div>
+
+  <p class="text-center text-sm text-stone-400 mt-6">
+    Already have a code?
+    <a href="{% url 'core:house-join' %}" class="text-rose-500 font-semibold hover:underline">
+      Join an existing home
+    </a>
+  </p>
+
+</div>
+{% endblock %}
