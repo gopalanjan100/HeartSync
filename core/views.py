@@ -21,11 +21,25 @@ from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import FormView, TemplateView
+from django.views.generic import FormView, TemplateView, RedirectView
 
 from .access import HouseMemberRequiredMixin
 from .forms import CreateHouseForm, JoinHouseForm, RegisterForm
 from .models import House, Profile
+
+
+# ---------------------------------------------------------------------------
+# Landing page
+# ---------------------------------------------------------------------------
+
+class LandingView(TemplateView):
+    """Public landing page. Logged-in users are sent straight to the dashboard."""
+    template_name = "core/landing.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect("core:dashboard")
+        return super().dispatch(request, *args, **kwargs)
 
 
 INVITE_CODE_CHARS  = string.ascii_uppercase + string.digits

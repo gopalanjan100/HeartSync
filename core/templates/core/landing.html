@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HeartSync — Your little home, online.</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            rose:  { DEFAULT: '#f43f5e', 50: '#fff1f2', 100: '#ffe4e6', 200: '#fecdd3', 300: '#fda4af', 400: '#fb7185', 500: '#f43f5e', 600: '#e11d48', 700: '#be123c' },
+            gold:  { DEFAULT: '#f59e0b', 50: '#fffbeb', 100: '#fef3c7', 200: '#fde68a', 300: '#fcd34d', 400: '#fbbf24', 500: '#f59e0b' },
+            cream: { 50: '#fdfaf5', 100: '#faf5eb', 200: '#f5ead6', 300: '#ede0c8' },
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans:  ['"Inter"', 'ui-sans-serif', 'system-ui'],
+          },
+        },
+      },
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet" />
+
+  <style>
+    body { background-color: #fdfaf5; }
+
+    /* Fade-up on scroll */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Staggered delays */
+    .delay-1 { transition-delay: 0.10s; }
+    .delay-2 { transition-delay: 0.22s; }
+    .delay-3 { transition-delay: 0.34s; }
+    .delay-4 { transition-delay: 0.46s; }
+
+    /* Gentle float for hero deco elements */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-10px); }
+    }
+    .float-slow { animation: float 5s ease-in-out infinite; }
+    .float-med  { animation: float 4s ease-in-out infinite 0.8s; }
+    .float-fast { animation: float 3.5s ease-in-out infinite 1.5s; }
+
+    /* Warm card hover */
+    .warm-card {
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .warm-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 16px 40px rgba(244, 63, 94, 0.12);
+    }
+
+    /* Step connector line */
+    .step-line::after {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: calc(50% + 36px);
+      width: calc(100% - 72px);
+      height: 2px;
+      background: linear-gradient(90deg, #fda4af, #fde68a);
+      border-radius: 999px;
+    }
+
+    /* Subtle grain texture on hero */
+    .grain::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Button pulse on hover */
+    .btn-primary {
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .btn-primary:hover {
+      transform: scale(1.03);
+      box-shadow: 0 8px 24px rgba(244, 63, 94, 0.30);
+    }
+    .btn-primary:active { transform: scale(0.98); }
+
+    .btn-secondary {
+      transition: background 0.18s ease, transform 0.18s ease;
+    }
+    .btn-secondary:hover { transform: scale(1.02); }
+  </style>
+</head>
+
+<body class="font-sans text-stone-800 overflow-x-hidden">
+
+  <!-- ── Nav ─────────────────────────────────────────────────────────────── -->
+  <nav class="sticky top-0 z-40 bg-cream-50/80 backdrop-blur border-b border-rose-100">
+    <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2 font-extrabold text-rose-500 text-lg tracking-tight font-sans">
+        <span class="text-2xl">💗</span> HeartSync
+      </a>
+      <div class="flex items-center gap-3">
+        <a href="{% url 'login' %}"
+           class="btn-secondary text-sm font-semibold text-stone-600 hover:text-rose-500 px-4 py-2 rounded-2xl transition">
+          Sign in
+        </a>
+        <a href="{% url 'core:register' %}"
+           class="btn-primary text-sm font-bold bg-rose-500 hover:bg-rose-600 text-white px-5 py-2 rounded-2xl">
+          Get started
+        </a>
+      </div>
+    </div>
+  </nav>
+
+
+  <!-- ── Hero ─────────────────────────────────────────────────────────────── -->
+  <section class="grain relative overflow-hidden bg-gradient-to-br from-cream-50 via-rose-50/40 to-gold-50/30 pt-20 pb-28">
+    <!-- Floating deco circles -->
+    <div class="float-slow absolute top-12 left-10 w-20 h-20 rounded-full bg-rose-200/40 blur-2xl pointer-events-none"></div>
+    <div class="float-med absolute bottom-16 right-12 w-32 h-32 rounded-full bg-gold-200/40 blur-3xl pointer-events-none"></div>
+    <div class="float-fast absolute top-1/2 right-1/4 w-14 h-14 rounded-full bg-rose-300/30 blur-xl pointer-events-none"></div>
+
+    <div class="relative z-10 max-w-3xl mx-auto px-6 text-center">
+
+      <!-- Eyebrow -->
+      <span class="inline-flex items-center gap-1.5 bg-white border border-rose-200 text-rose-500 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full shadow-sm mb-6">
+        🏠 For couples &amp; families
+      </span>
+
+      <!-- Headline -->
+      <h1 class="font-serif text-5xl md:text-6xl font-bold text-stone-800 leading-tight mb-5">
+        Your little home,<br/>
+        <em class="text-rose-500 not-italic">online.</em>
+      </h1>
+
+      <!-- Sub -->
+      <p class="text-stone-500 text-lg md:text-xl leading-relaxed max-w-xl mx-auto mb-10">
+        HeartSync brings your household together — shared chores, sweet rewards,
+        heartfelt notes, and dates you'll never forget. All in one warm place.
+      </p>
+
+      <!-- CTAs -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <a href="{% url 'core:register' %}"
+           class="btn-primary w-full sm:w-auto bg-rose-500 hover:bg-rose-600 text-white font-bold text-base px-8 py-3.5 rounded-2xl shadow-md">
+          Create your home 🏠
+        </a>
+        <a href="{% url 'login' %}"
+           class="btn-secondary w-full sm:w-auto bg-white border border-rose-200 text-stone-700 font-semibold text-base px-8 py-3.5 rounded-2xl hover:border-rose-400">
+          Already have an account
+        </a>
+      </div>
+
+      <!-- Social proof nudge -->
+      <p class="mt-8 text-xs text-stone-400 font-medium">
+        Free to use &nbsp;·&nbsp; No credit card &nbsp;·&nbsp; Set up in 2 minutes
+      </p>
+
+    </div>
+
+    <!-- Hero preview mockup -->
+    <div class="relative z-10 max-w-2xl mx-auto mt-14 px-6">
+      <div class="bg-white rounded-3xl shadow-xl border border-rose-100 p-6 space-y-4">
+        <!-- Fake nav strip -->
+        <div class="flex items-center gap-2 pb-3 border-b border-stone-100">
+          <span class="text-xl">💗</span>
+          <span class="font-extrabold text-rose-500 text-sm">HeartSync</span>
+          <div class="ml-auto flex gap-4">
+            <span class="text-xs text-stone-400 font-medium">Quests</span>
+            <span class="text-xs text-stone-400 font-medium">Rewards</span>
+            <span class="text-xs text-gold-500 font-bold">✨ 120 pts</span>
+          </div>
+        </div>
+        <!-- Fake quest cards -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-rose-50 rounded-2xl p-4 border border-rose-100">
+            <p class="text-xs text-stone-400 uppercase tracking-wide font-bold mb-1">Open quest</p>
+            <p class="font-semibold text-stone-700 text-sm">🧹 Vacuum living room</p>
+            <p class="text-xs text-rose-400 font-bold mt-2">+15 pts</p>
+          </div>
+          <div class="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
+            <p class="text-xs text-stone-400 uppercase tracking-wide font-bold mb-1">Completed ✓</p>
+            <p class="font-semibold text-stone-600 text-sm line-through opacity-60">🍽 Do the dishes</p>
+            <p class="text-xs text-emerald-500 font-bold mt-2">+10 pts earned</p>
+          </div>
+          <div class="bg-gold-50 rounded-2xl p-4 border border-amber-100 col-span-2 flex items-center gap-3">
+            <span class="text-2xl">🎉</span>
+            <div>
+              <p class="text-xs text-stone-400 font-bold uppercase tracking-wide">Gratitude received</p>
+              <p class="text-sm text-stone-700 font-medium">"You've been amazing this week, thank you 💖"</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── Features ─────────────────────────────────────────────────────────── -->
+  <section id="features" class="py-24 px-6">
+    <div class="max-w-5xl mx-auto">
+
+      <div class="text-center mb-16 reveal">
+        <p class="text-rose-400 font-bold uppercase tracking-widest text-xs mb-3">Everything you need</p>
+        <h2 class="font-serif text-4xl font-bold text-stone-800">Built for life at home</h2>
+        <p class="text-stone-400 mt-3 text-base max-w-md mx-auto">
+          Four simple tools that make living together feel a little less like work and a lot more like love.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+
+        <!-- Quests -->
+        <div class="warm-card reveal delay-1 bg-white border border-rose-100 rounded-3xl p-8 flex gap-5">
+          <div class="flex-shrink-0 w-14 h-14 bg-rose-100 rounded-2xl flex items-center justify-center text-2xl">
+            📋
+          </div>
+          <div>
+            <h3 class="font-serif text-xl font-bold text-stone-800 mb-2">Quests</h3>
+            <p class="text-stone-500 text-sm leading-relaxed">
+              Turn everyday chores into quests with points attached. Vacuuming, cooking, grocery runs —
+              whoever gets it done earns the reward. Chores suddenly feel a lot more satisfying.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="text-xs bg-rose-50 text-rose-500 font-semibold px-3 py-1 rounded-full border border-rose-200">Assign to housemates</span>
+              <span class="text-xs bg-rose-50 text-rose-500 font-semibold px-3 py-1 rounded-full border border-rose-200">Recurring tasks</span>
+              <span class="text-xs bg-rose-50 text-rose-500 font-semibold px-3 py-1 rounded-full border border-rose-200">Point rewards</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rewards -->
+        <div class="warm-card reveal delay-2 bg-white border border-gold-200 rounded-3xl p-8 flex gap-5">
+          <div class="flex-shrink-0 w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center text-2xl">
+            🎁
+          </div>
+          <div>
+            <h3 class="font-serif text-xl font-bold text-stone-800 mb-2">Rewards</h3>
+            <p class="text-stone-500 text-sm leading-relaxed">
+              Create rewards your household actually cares about — breakfast in bed, movie night pick,
+              a massage, or just the last slice of pizza. Spend your hard-earned points on the things that matter.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="text-xs bg-amber-50 text-amber-600 font-semibold px-3 py-1 rounded-full border border-amber-200">Custom rewards</span>
+              <span class="text-xs bg-amber-50 text-amber-600 font-semibold px-3 py-1 rounded-full border border-amber-200">Points balance</span>
+              <span class="text-xs bg-amber-50 text-amber-600 font-semibold px-3 py-1 rounded-full border border-amber-200">Redemption log</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gratitude -->
+        <div class="warm-card reveal delay-3 bg-white border border-pink-100 rounded-3xl p-8 flex gap-5">
+          <div class="flex-shrink-0 w-14 h-14 bg-pink-100 rounded-2xl flex items-center justify-center text-2xl">
+            💌
+          </div>
+          <div>
+            <h3 class="font-serif text-xl font-bold text-stone-800 mb-2">Gratitude Notes</h3>
+            <p class="text-stone-500 text-sm leading-relaxed">
+              Send a quick sticker or heartfelt note to someone in your home.
+              A little appreciation goes a long way — and those small moments deserve to be remembered.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="text-xs bg-pink-50 text-pink-500 font-semibold px-3 py-1 rounded-full border border-pink-200">Stickers 🌸💪🎉</span>
+              <span class="text-xs bg-pink-50 text-pink-500 font-semibold px-3 py-1 rounded-full border border-pink-200">Personal notes</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Important Dates -->
+        <div class="warm-card reveal delay-4 bg-white border border-stone-200 rounded-3xl p-8 flex gap-5">
+          <div class="flex-shrink-0 w-14 h-14 bg-stone-100 rounded-2xl flex items-center justify-center text-2xl">
+            📅
+          </div>
+          <div>
+            <h3 class="font-serif text-xl font-bold text-stone-800 mb-2">Important Dates</h3>
+            <p class="text-stone-500 text-sm leading-relaxed">
+              Track anniversaries, birthdays, first-day memories, and anything else worth celebrating.
+              Set reminders so nothing slips through the cracks — especially the ones that really count.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="text-xs bg-stone-100 text-stone-600 font-semibold px-3 py-1 rounded-full border border-stone-200">Yearly recurrence</span>
+              <span class="text-xs bg-stone-100 text-stone-600 font-semibold px-3 py-1 rounded-full border border-stone-200">Reminders</span>
+              <span class="text-xs bg-stone-100 text-stone-600 font-semibold px-3 py-1 rounded-full border border-stone-200">Categories</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── How it works ──────────────────────────────────────────────────────── -->
+  <section id="how-it-works" class="py-24 px-6 bg-gradient-to-br from-rose-50/60 to-amber-50/40">
+    <div class="max-w-4xl mx-auto">
+
+      <div class="text-center mb-16 reveal">
+        <p class="text-rose-400 font-bold uppercase tracking-widest text-xs mb-3">Simple by design</p>
+        <h2 class="font-serif text-4xl font-bold text-stone-800">Up and running in minutes</h2>
+        <p class="text-stone-400 mt-3 text-base max-w-sm mx-auto">
+          No complicated setup. Just you, your people, and a little home you share.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8 relative">
+
+        <!-- Step 1 -->
+        <div class="reveal delay-1 text-center relative">
+          <div class="relative inline-block step-line md:block hidden">
+            <div class="w-14 h-14 bg-rose-500 text-white rounded-2xl flex items-center justify-center text-xl font-extrabold shadow-lg mx-auto">
+              1
+            </div>
+          </div>
+          <div class="md:hidden w-14 h-14 bg-rose-500 text-white rounded-2xl flex items-center justify-center text-xl font-extrabold shadow-lg mx-auto">
+            1
+          </div>
+          <div class="mt-5 bg-white rounded-3xl border border-rose-100 p-6 shadow-sm">
+            <div class="text-3xl mb-3">🏠</div>
+            <h3 class="font-serif text-lg font-bold text-stone-800 mb-2">Create your home</h3>
+            <p class="text-stone-500 text-sm leading-relaxed">
+              Sign up and give your household a name. You'll get a unique invite code to share with the people you live with.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="reveal delay-2 text-center">
+          <div class="relative inline-block step-line md:block hidden">
+            <div class="w-14 h-14 bg-rose-400 text-white rounded-2xl flex items-center justify-center text-xl font-extrabold shadow-lg mx-auto">
+              2
+            </div>
+          </div>
+          <div class="md:hidden w-14 h-14 bg-rose-400 text-white rounded-2xl flex items-center justify-center text-xl font-extrabold shadow-lg mx-auto">
+            2
+          </div>
+          <div class="mt-5 bg-white rounded-3xl border border-rose-100 p-6 shadow-sm">
+            <div class="text-3xl mb-3">🔑</div>
+            <h3 class="font-serif text-lg font-bold text-stone-800 mb-2">Invite your people</h3>
+            <p class="text-stone-500 text-sm leading-relaxed">
+              Share the invite code with your partner or family. They join in seconds — no hoops, no hassle.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="reveal delay-3 text-center">
+          <div class="w-14 h-14 bg-amber-400 text-white rounded-2xl flex items-center justify-center text-xl font-extrabold shadow-lg mx-auto">
+            3
+          </div>
+          <div class="mt-5 bg-white rounded-3xl border border-rose-100 p-6 shadow-sm">
+            <div class="text-3xl mb-3">✨</div>
+            <h3 class="font-serif text-lg font-bold text-stone-800 mb-2">Start living together</h3>
+            <p class="text-stone-500 text-sm leading-relaxed">
+              Create quests, earn points, redeem rewards, and send little notes of gratitude. Your home, synced.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── Cozy quote ───────────────────────────────────────────────────────── -->
+  <section class="py-20 px-6">
+    <div class="max-w-2xl mx-auto text-center reveal">
+      <div class="text-4xl mb-6">💗</div>
+      <blockquote class="font-serif text-2xl md:text-3xl italic text-stone-700 leading-relaxed">
+        "The little things you do together are the things you'll remember forever."
+      </blockquote>
+      <p class="mt-5 text-stone-400 text-sm font-medium">— What HeartSync is built on</p>
+    </div>
+  </section>
+
+
+  <!-- ── Bottom CTA ───────────────────────────────────────────────────────── -->
+  <section class="py-24 px-6 bg-gradient-to-br from-rose-500 to-rose-600 relative overflow-hidden">
+    <!-- Deco blobs -->
+    <div class="absolute top-0 right-0 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none -translate-y-1/2 translate-x-1/4"></div>
+    <div class="absolute bottom-0 left-0 w-56 h-56 bg-white/10 rounded-full blur-3xl pointer-events-none translate-y-1/3 -translate-x-1/4"></div>
+
+    <div class="relative z-10 max-w-xl mx-auto text-center reveal">
+      <h2 class="font-serif text-4xl font-bold text-white leading-tight mb-4">
+        Ready to make home<br/>feel like home?
+      </h2>
+      <p class="text-rose-100 text-base mb-8">
+        Set up your space in minutes. Free, always.
+      </p>
+      <a href="{% url 'core:register' %}"
+         class="inline-block bg-white text-rose-600 font-bold text-base px-10 py-4 rounded-2xl shadow-lg btn-primary">
+        Create your home — it's free 🏠
+      </a>
+      <p class="mt-5 text-rose-200 text-sm">
+        Already have a home?
+        <a href="{% url 'login' %}" class="text-white font-bold underline underline-offset-2 hover:no-underline">
+          Sign in here
+        </a>
+      </p>
+    </div>
+  </section>
+
+
+  <!-- ── Footer ───────────────────────────────────────────────────────────── -->
+  <footer class="bg-cream-100 border-t border-rose-100 py-8 px-6">
+    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2 text-rose-500 font-extrabold">
+        <span class="text-xl">💗</span> HeartSync
+      </div>
+      <p class="text-stone-400 text-xs text-center">
+        Made with love, for the people you love.
+      </p>
+      <div class="flex gap-4 text-xs text-stone-400 font-medium">
+        <a href="{% url 'core:register' %}" class="hover:text-rose-400 transition">Sign up</a>
+        <span>·</span>
+        <a href="{% url 'login' %}" class="hover:text-rose-400 transition">Sign in</a>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ── Scroll reveal script ──────────────────────────────────────────────── -->
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  </script>
+
+</body>
+</html>

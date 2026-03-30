@@ -7,6 +7,11 @@ app_name = "core"
 
 urlpatterns = [
     # ------------------------------------------------------------------
+    # Landing
+    # ------------------------------------------------------------------
+    path("",                        views.LandingView.as_view(),           name="landing"),
+
+    # ------------------------------------------------------------------
     # Auth
     # ------------------------------------------------------------------
     path("register/",               views.RegisterView.as_view(),          name="register"),
@@ -22,7 +27,7 @@ urlpatterns = [
     # ------------------------------------------------------------------
     # Main app
     # ------------------------------------------------------------------
-    path("",                        dv.DashboardView.as_view(),            name="dashboard"),
+    path("dashboard/",              dv.DashboardView.as_view(),            name="dashboard"),
 
     path("quests/",                 dv.QuestListView.as_view(),            name="quest-list"),
     path("quests/new/",             dv.QuestCreateView.as_view(),          name="quest-create"),
