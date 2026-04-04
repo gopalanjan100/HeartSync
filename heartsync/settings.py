@@ -46,7 +46,7 @@ ROOT_URLCONF = "heartsync.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR],
         "APP_DIRS": True,          # Finds core/templates/ automatically
         "OPTIONS": {
             "context_processors": [

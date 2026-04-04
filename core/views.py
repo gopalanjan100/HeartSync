@@ -34,7 +34,7 @@ from .models import House, Profile
 
 class LandingView(TemplateView):
     """Public landing page. Logged-in users are sent straight to the dashboard."""
-    template_name = "core/landing.html"
+    template_name = "index.html"
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
