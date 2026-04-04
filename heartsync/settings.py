@@ -1,16 +1,23 @@
 from pathlib import Path
+import os
 import environ
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-env = environ.Env()
-environ.Env.read_env(BASE_DIR / ".env")
+env = environ.Env(
+    DEBUG=(bool, False),
+)
 
-SECRET_KEY = "dev-only-secret-key-change-before-production"
+# Load .env only in local dev (Railway injects env vars directly)
+env_file = BASE_DIR / ".env"
+if env_file.exists():
+    environ.Env.read_env(env_file)
 
-DEBUG = True
+SECRET_KEY = env("SECRET_KEY", default="dev-only-secret-key-change-before-production")
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+DEBUG = env("DEBUG")
+
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
 
 # ------------------------------------------------------------------
 # Apps
@@ -30,6 +37,7 @@ INSTALLED_APPS = [
 # ------------------------------------------------------------------
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -47,7 +55,7 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [BASE_DIR],
-        "APP_DIRS": True,          # Finds core/templates/ automatically
+        "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.debug",
@@ -62,18 +70,23 @@ TEMPLATES = [
 WSGI_APPLICATION = "heartsync.wsgi.application"
 
 # ------------------------------------------------------------------
-# Database — PostgreSQL
+# Database
+# Railway provides DATABASE_URL; local dev uses individual DB_* vars
 # ------------------------------------------------------------------
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("DB_NAME"),
-        "USER": env("DB_USER"),
-        "PASSWORD": env("DB_PASSWORD"),
-        "HOST": env("DB_HOST", default="localhost"),
-        "PORT": env("DB_PORT", default="5432"),
+database_url = os.environ.get("DATABASE_URL")
+if database_url:
+    DATABASES = {"default": env.db_url("DATABASE_URL")}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("DB_NAME"),
+            "USER": env("DB_USER"),
+            "PASSWORD": env("DB_PASSWORD"),
+            "HOST": env("DB_HOST", default="localhost"),
+            "PORT": env("DB_PORT", default="5432"),
+        }
     }
-}
 
 # ------------------------------------------------------------------
 # Auth
@@ -93,6 +106,8 @@ LOGOUT_REDIRECT_URL = "/accounts/login/"
 # Static & media files
 # ------------------------------------------------------------------
 STATIC_URL  = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 MEDIA_URL   = "/media/"
 MEDIA_ROOT  = BASE_DIR / "media"
 
