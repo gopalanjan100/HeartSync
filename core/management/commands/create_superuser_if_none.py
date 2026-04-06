@@ -9,7 +9,15 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         User = get_user_model()
         if User.objects.filter(is_superuser=True).exists():
-            self.stdout.write("Superuser already exists, skipping.")
+            # Reset password in case it was created incorrectly before
+            user = User.objects.filter(is_superuser=True).first()
+            password = os.environ.get("DJANGO_SUPERUSER_PASSWORD")
+            if password:
+                user.set_password(password)
+                user.save()
+                self.stdout.write(f"Superuser '{user.username}' password reset.")
+            else:
+                self.stdout.write("Superuser already exists, skipping.")
             return
 
         username = os.environ.get("DJANGO_SUPERUSER_USERNAME")
